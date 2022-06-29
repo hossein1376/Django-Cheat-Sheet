@@ -2,7 +2,20 @@
 
 This is a list of intial commands, generic issues and tasks, Q&amp;A problems and niches.
 
-## Start a virtual environment
+- [Intial Commands](#intial-commands)
+  - [Start a virtual environment](#start-a-virtual-environment)
+  - [Activating the virtual environment](#activating-the-virtual-environment)
+  - [Starting a Django Project](#starting-a-django-project)
+  - [Run server](#run-server)
+  - [Migration](#migration)
+  - [Start an app](#start-an-app)
+  - [Django MVC](#django-mvc)
+  - [Create admin](#create-admin)
+  - [Add a model to admin page](#add-a-model-to-admin-page)
+
+## Intial Commands
+
+### Start a virtual environment
 
 There are multiple ways of starting a virtual environment, I use venve due ti its simplicity and ease of use.
 
@@ -10,7 +23,7 @@ There are multiple ways of starting a virtual environment, I use venve due ti it
 python -m venv VIRTUAL_ENV_NAME
 ```
 
-## Activating the virtual environment
+### Activating the virtual environment
 
 If you're inside your django project folder which we will be creating in a few moments, you can put the .. before the path. Like this:
 
@@ -18,13 +31,13 @@ If you're inside your django project folder which we will be creating in a few m
 ..\scripts\activate
 ```
 
-## Starting a Django Project
+### Starting a Django Project
 
 ```console
-dhango-admin startprojject Project
+django-admin startprojject Project
 ```
 
-## Run server
+### Run server
 
 You can specify the port or leave it empty to use the default, which is 8000.
 
@@ -32,7 +45,7 @@ You can specify the port or leave it empty to use the default, which is 8000.
 python manage.py runserver 8000
 ```
 
-## Migration
+### Migration
 
 ```console
 python manage.py makemigrations
@@ -49,7 +62,7 @@ python manage.py makemigrations App
 
 - If you are planning to integrate a custum user model, **Do Not** run migrations untill you have configured those.
 
-## Start an app
+### Start an app
 
 ```console
 python manage.py startapp App
@@ -57,17 +70,17 @@ python manage.py startapp App
 
 Then, you need to add it to settings.py.
 
-## Django MVC
+### Django MVC
 
 URL -> View -> (Model) -> Template
 
-## Create admin
+### Create admin
 
 ```console
 python manage.py createsuperuser
 ```
 
-## Add model to admin page
+### Add a model to admin page
 
 ```python
 # App/admin.py
