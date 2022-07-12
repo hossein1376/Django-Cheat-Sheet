@@ -68,7 +68,7 @@ python manage.py makemigrations App
 
 - You need to run migrations everytime you modify models.py or settings.py files.
 
-- If you are planning to integrate a custum user model, **Do Not** run migrations untill you have configured those.
+- If you are planning to integrate a custom user model, **Do Not** run migrations untill you have configured those.
 
 ### Start an app
 
@@ -128,12 +128,12 @@ Lastly, you can define a name for this specefic url.
 
 ### views.py file
 
-You can use function based views (FBV) or to use class based views(CBV). Each has its own advantages and uses.  
-All of CBV classes can be found at [Class Class Based Views](https://ccbv.co.uk/).  
+You can use function-based views (FBV) or to use class-based views(CBV). Each has its own advantages and uses.  
+All of CBV classes can be found at [Classy Class-Based Views](https://ccbv.co.uk/).  
 Each class has its own variables and methods that can be overridden if the need arises.  
 For example:
 
-```python
+```
 template_name: string -> html template name and path
 extra_content: dictionary -> A dictionary of variables you need to pass to the template
 ```
@@ -172,7 +172,7 @@ class Model(models.Model):
 ```
 
 If we need to display the model inside the admin page, we can add it to admin.py file. [As shown here](#add-a-model-to-admin-page).  
-To determine how our data should be displayed inside the admin panel page, we can add the following at the end the the View class:
+To determine how our data should be displayed inside the admin panel page, we can add the following method to the end the the View class:
 
 ```python
   def __str__(self):
@@ -185,14 +185,304 @@ Populate the template with html code. Use {% %} tag to insert code and use {{ }}
 Also, you can extend an existing template.
 
 ```html
-{% extends '_base.html' %}
-
+<!-- _base.html -->
 <html>
   <head>
-    <title>{{name}}</title>
+    {% block title %}
+    {% endblock title %}
   </head>
   <body>
-    <h1>Welcome to {{name}}</h1>
+    {% block content %}
+    {% endblock content %}
   </body>
 </html>
+```
+
+```html
+<!-- template.html -->
+{% extends '_base.html' %}
+
+{block title}
+  <title>Django Cheat Sheet</title>
+{% endblock title %}
+
+{% block content %}
+  <h1>Welcome to {{name}}!</h1>
+  <p><a href="{% url 'app home' %}">The url of this page</a></p>
+{% endblock content %}
+```
+
+## Generic tasks and issues
+
+### Change the default templates folder path
+
+```python
+# Project/settings.py
+TEMPLATES = [
+    {'DIRS': [str(BASE_DIR.joinpath('templates'))],},
+]
+```
+
+### Change the default statics folder path
+
+```python
+# Project/settings.py
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [str(BASE_DIR.joinpath('static'))]
+```
+
+### Forms
+
+You can configure you forms directly from views.py file. You need to mention the model's name that will store the data. Also, specify the fields to show to the user. Otherwise, all the avaliable fields will be displayed.  
+If you want to customize the fields inside forms.py file, then you need to import that class from the forms.py and (instead of a model) insert the `form_class =`.
+
+```python
+# App/views.py
+...
+
+class Create(CreateView):
+  model = Model
+  template_name = 'template.html'
+  fields = ['field1', 'field2',]
+
+
+class Update(UpdateView):
+  form_class = FormCLass
+  template_name = 'template.html'
+  fields = ['field1',]
+  success_url = reverse_lazy('app home')
+
+```
+
+You can use `success_url` to redirect the user, or also you can define a `get_absolute_url` method in the model to specify the url to redirect to.  
+Whenever you are receving data from user to modify your database; in your html form you need to use POST request method and include {% csrf_token %} for security purposes.
+
+```html
+<!-- template.html -->
+{% extends '_base.html' %}
+
+{% block content %}
+  <form action="" method="POST">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">submit</button>
+  </form>
+{% endblock content %}
+```
+
+### More forms customizations
+
+//
+
+### Django user authentication
+
+**Log In**  
+You can use Django's own authentication for easy and fast development. In order to do that, the following goes:
+
+```python
+# Project/urls.py
+urlpatterns = [
+  ...
+  path('accounts/', include('django.contrib.auth.urls')),
+  ...
+  ]
+```
+
+You templates need to be inside a folder called `registration`.  
+
+```html
+<!-- login.html -->
+{% extends '_base.html' %}
+
+{% block content %}
+<h1><a href="{% url 'login' %}">Log In</a></h1>
+  <form action="" method="POST">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">submit</button>
+  </form>
+{% endblock content %}
+```
+
+Also, we need to specify the login redirect url.
+
+```python
+# Project/settings.py
+LOGIN_REDIRECT_URL = 'app home'
+```
+
+Notice that there is no need to define a view or a model.  
+**Log Out**  
+If we have already updated the urls.py file, all we need to do is to link the logout url as `{% url 'logout' %}` and add the redirect to the seetings.py file.
+
+```python
+# Project/settings.py
+LOGIN_REDIRECT_URL = 'app home'
+LOGOUT_REDIRECT_URL = 'app home' # Added this
+```
+
+That's it!
+
+### Custom user authentication
+
+Firstly, to let django know of the redirects, we add this:
+
+```python
+# Project/settings.py
+LOGIN_REDIRECT_URL = 'app home'
+LOGOUT_REDIRECT_URL = 'app home'
+```
+
+### Only logged in users can view
+
+We can use Django template language for this task.
+
+```html
+<!-- template.html -->
+...
+
+  {% if user.is_authenticated %}
+    <p>You are logged in.</p>
+  {% else %}
+    <p>You are not logged in.</p>
+  {% endif %}
+...
+```
+
+### Django UserCreationForm
+
+UserCreationForm comes with three predefined fields: username, password1, and password2. If these met our needs, we can happily proceed. Otherwise, we need to make use of [Custom User Models](#custom-user-model).  
+It's preferable to have a [seprate app](#start-an-app) for this. [Configure the url](#pass-the-request-to-the-apps-urlspy).  
+**Note:** If you are making use of [Django user authentication](#django-user-authentication), then you should add the url *after* the `auth` urls.
+
+```python
+# Project/urls.py
+
+urlpatterns = [
+  ...
+  path('accounts/', include('django.contrib.auth.urls')),
+  path('accounts/', include('accounts.urls')),
+  ...
+]
+```
+
+Now, we take care of the url:
+
+```python
+# accounts/urls.py
+from django.urls import path
+from .views import SignUpView
+
+urlpatterns = [
+    path('signup/', SignUpView.as_view(), name='signup'),
+]
+```
+
+Next, views:
+
+```python
+# accounts/views.py
+from django.contrib.auth.forms import UserCreationForm
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
+
+
+class SignUpView(CreateView):
+    form_class = UserCreationForm
+    success_url = reverse_lazy('login')
+    template_name = 'registration/signup.html'
+```
+
+Lastly, the template file:
+
+```html
+<!-- templates/registration/signup.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Sign Up</h2>
+  <form method="POST">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">Sign Up</button>
+  </form>
+{% endblock content %}
+```
+
+### Custom User Model
+
+After starting the project, we **should not** run migrations if we're planning to implement a custom user model.  
+We start [a new  app](#start-an-app) and add its name and the following to settings.py:
+
+```python
+AUTH_USER_MODEL = 'accounts.CustomUser'
+```
+
+We make a new User Model:
+
+```python
+# accounts/models.py
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+class CustomUser(AbstractUser):
+  name = models.CharField(max_length=100)
+```
+
+We customize the model in the forms.py file:
+
+```python
+# accounts/forms.py
+from django import forms
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from .models import CustomUser
+
+class CustomUserCreationForm(UserCreationForm):
+  class Meta(UserCreationForm):
+    model = CustomUser
+    fields = UserCreationForm.Meta.fields + ('age',)
+
+
+class CustomUserChangeForm(UserChangeForm):
+  class Meta:
+    model = CustomUser
+    fields = UserChangeForm.Meta.fields
+```
+
+Then, we need to update the admin.py:
+
+```python
+# accounts/admin.py
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from .forms import CustomUserCreationForm, CustomUserChangeForm
+from .models import CustomUser
+
+class CustomUserAdmin(UserAdmin):
+  add_form = CustomUserCreationForm
+  form = CustomUserChangeForm
+  model = CustomUser
+
+  list_display = ['email', 'username', 'name', ]
+  fieldsets = UserAdmin.fieldsets + (
+    (None, {'fields': ('name',)}),
+    )
+  add_fieldsets = UserAdmin.add_fieldsets + (
+      (None, {'fields': ('name',)}),
+  )
+
+admin.site.register(CustomUser, CustomUserAdmin)
+```
+
+### Static files
+
+Add this to your settings.py file to let it know where to look for static files.
+
+```python
+# Project/settings.py
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [str(BASE_DIR.joinpath('static'))]
+STATIC_ROOT = str(BASE_DIR.joinpath('staticfiles'))
+STATICFILES_STORAGE =
+    'django.contrib.staticfiles.storage.StaticFilesStorage'
 ```
